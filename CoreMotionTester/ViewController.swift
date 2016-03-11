@@ -27,9 +27,12 @@ class ViewController: UIViewController {
     var posRotationCounter: Int = 0
     var negRotationCounter: Int = 0
     var timeCounter: Int = 0
+    var avgFreq: Double = 0
+    var totalTime: Double = 0
+    var avgPeriod: Double = 0
 
     
-    let updateInterval = 0.05
+    let updateInterval = 0.02
     
     var motionManager = CMMotionManager()
     
@@ -48,11 +51,13 @@ class ViewController: UIViewController {
     @IBOutlet var maxRotY: UILabel?
     @IBOutlet var maxRotZ: UILabel?
     @IBOutlet weak var periodCount: UILabel!
+    @IBOutlet weak var averageFrequency: UILabel!
+    @IBOutlet weak var averagePeriod: UILabel!
+    @IBOutlet weak var timeInSec: UILabel!
     
     // Functions
     
     @IBAction func resetMaxValues() {
-        
         currentMaxAccelX = 0
         currentMaxAccelY = 0
         currentMaxAccelZ = 0
@@ -61,6 +66,16 @@ class ViewController: UIViewController {
         currentMaxRotY = 0
         currentMaxRotZ = 0
         
+        recordedClockwiseRotation = 0
+        rotationCounter = 0
+        periodCounter = 0
+        posRotationCounter = 0
+        negRotationCounter = 0
+        timeCounter = 0
+        
+        avgFreq = 0
+        totalTime = 0
+        avgPeriod = 0
     }
 
     override func viewDidLoad() {
@@ -140,14 +155,16 @@ class ViewController: UIViewController {
         rotationData.append(rotation.z)
         
         if isRotatingClockwise {
-            if negRotationCounter < 5 {
+            if negRotationCounter < 7 {
                 if rotation.z < 0 {
                     negRotationCounter++
                 }
                 timeCounter++
-            } else if timeCounter < 7 {
+            } else if timeCounter < 9 {
                 isRotatingClockwise = false
                 periodCounter++
+                avgFreq = Double(periodCounter) / totalTime
+                avgPeriod = totalTime / Double(periodCounter)
                 negRotationCounter = 0
                 timeCounter = 0
             } else {
@@ -156,13 +173,13 @@ class ViewController: UIViewController {
             }
         }
         if isRotatingClockwise == false {
-            if posRotationCounter < 5 {
+            if posRotationCounter < 7 {
                 if rotation.z > 0 {
                     posRotationCounter++
                 }
                 timeCounter++
                 
-            } else if timeCounter < 7 {
+            } else if timeCounter < 9 {
                 isRotatingClockwise = true
                 posRotationCounter = 0
                 timeCounter = 0
@@ -172,52 +189,13 @@ class ViewController: UIViewController {
             }
         }
         
-
+        totalTime = totalTime + updateInterval
         
-        
-//        if isRotatingClockwise {
-//            // collect last five data points (iterate over and count the number of positives)
-//            for var index = 0; index < 5; ++index {
-//                // if x data point is negative, increase counter
-//                if rotationData[rotationData.count - index - 1] < 0 {
-//                    rotationCounter++
-//                }
-//            }
-//        
-//            // if there were at least 4 negative data points in the last 5,
-//            //   the phone is rotating counterclockwise and the counters
-//            //   should be reset
-//            
-//            if rotationCounter >= 4 {
-//                
-//                isRotatingClockwise = true
-//                periodCounter++
-//                rotationCounter = 0
-//                
-//            }
-//
-//        }
-//        else {
-//            // collect last five data points (iterate over and count the number of positives)
-//            
-//            for var index = 0; index < 5; ++index {
-//                // if indexed data point is positive, increase counter
-//                if rotationData[rotationData.count - index - 1] > 0 {
-//                    rotationCounter++
-//                }
-//            }
-//            
-//            // if there were at least 4 positive data points in the last 5,
-//            //   the phone is rotating clockwise and the counters
-//            //   should be reset
-//            
-//            if rotationCounter >= 4 {
-//                isRotatingClockwise = false
-//                rotationCounter = 0
-//            }
-//            
-//        }
         periodCount.text = String(periodCounter)
+        
+        averageFrequency.text = String(avgFreq)
+        averagePeriod.text = String(avgPeriod)
+        timeInSec.text = String.localizedStringWithFormat("%.0f", totalTime)
     }
     
     
